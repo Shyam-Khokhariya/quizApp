@@ -116,12 +116,12 @@ const QuizQuestion = ({
             );
           } else if (selectedOption) {
             return (
-              <View style={[styles.optionContainer]}>
+              <View key={index} style={[styles.optionContainer]}>
                 <Text>{selectedOption}</Text>
               </View>
             );
           }
-          return <View style={styles.emptyContainer} />;
+          return <View key={index} style={styles.emptyContainer} />;
         })}
       </View>
       <FlatList
@@ -129,6 +129,7 @@ const QuizQuestion = ({
         numColumns={2}
         data={data?.options}
         renderItem={renderItem}
+        keyExtractor={(_, index) => index.toString()}
       />
       <View style={[styles.bottomButtonContainer, {backgroundColor}]}>
         {renderBottomButton()}
