@@ -1,9 +1,15 @@
-import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import React, {useMemo, useState} from 'react';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import makeStyle from './styles';
 import {IQuizList} from '../../screens/Quiz';
 import {IColors} from '../../theme';
+
+enum ResultTypes {
+  NOT_CHECKED = 'NOT_CHECKED',
+  CORRECT = 'CORRECT',
+  NOT_CORRECT = 'NOT_CORRECT',
+}
 
 const QuizQuestion = ({
   data,
@@ -15,7 +21,7 @@ const QuizQuestion = ({
   const {colors}: {colors: IColors} = useTheme();
   const styles = makeStyle(colors);
   const [selectedOption, setSelectedOption] = useState<string>('');
-  const [result, setResult] = useState<boolean | null>();
+  const [result, setResult] = useState<ResultTypes>(ResultTypes.NOT_CHECKED);
   const renderItem = ({item}: {item: string}) => {
     if (item !== selectedOption) {
       return (
@@ -23,7 +29,7 @@ const QuizQuestion = ({
           onPress={() => {
             setSelectedOption(item);
           }}
-          disabled={typeof result !== 'undefined'}
+          disabled={result !== ResultTypes.NOT_CHECKED}
           style={[styles.optionContainer]}>
           <Text>{item}</Text>
         </TouchableOpacity>
@@ -33,20 +39,31 @@ const QuizQuestion = ({
   };
 
   const checkAnswer = () => {
-    setResult(data?.correctOption === selectedOption);
+    setResult(
+      data?.correctOption === selectedOption
+        ? ResultTypes.CORRECT
+        : ResultTypes.NOT_CORRECT,
+    );
   };
 
   const renderBottomButton = () => {
-    if (typeof result !== 'undefined') {
+    if (result !== ResultTypes.NOT_CHECKED) {
       return (
         <>
           <Text style={styles.answerText}>
-            {result ? 'Great Job!' : `Answer: ${data?.correctOption}`}
+            {result === ResultTypes.CORRECT
+              ? 'Great Job!'
+              : `Answer: ${data?.correctOption}`}
           </Text>
           <TouchableOpacity
             style={styles.completionContainer}
             onPress={onNextQuestion}>
-            <Text style={result ? styles.successText : styles.errorText}>
+            <Text
+              style={
+                result === ResultTypes.CORRECT
+                  ? styles.successText
+                  : styles.errorText
+              }>
               Next Question
             </Text>
           </TouchableOpacity>
@@ -68,8 +85,8 @@ const QuizQuestion = ({
   };
 
   const backgroundColor = useMemo(() => {
-    if (typeof result !== 'undefined') {
-      if (result) {
+    if (result !== ResultTypes.NOT_CHECKED) {
+      if (result === ResultTypes.CORRECT) {
         return colors.successBackground;
       }
       return colors.failureBackground;
@@ -79,7 +96,7 @@ const QuizQuestion = ({
   }, [result]);
   const onNextQuestion = () => {
     setSelectedOption('');
-    setResult();
+    setResult(ResultTypes.NOT_CHECKED);
     nextQuestion();
   };
 
